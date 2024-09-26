@@ -1,0 +1,52 @@
+from django.db import models
+from django.contrib.auth.models import User
+from pydantic import ValidationError
+
+class Profile(models.Model):
+    USER_TYPES = (
+        ('jefe', 'Jefe'),
+        ('empleado', 'Empleado'),
+    )
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=False)
+    user_type = models.CharField(max_length=10, choices=USER_TYPES)
+    # disponible = models.BooleanField(null= True)
+
+    def __str__(self):
+        return self.user.username
+    
+class Proyecto(models.Model):
+    title = models.CharField(max_length=50)
+    owner = models.ForeignKey(User, related_name='owned_projects', on_delete=models.CASCADE)
+    members = models.ManyToManyField(User, related_name='projects')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        # Asegurarse de que solo los usuarios de tipo jefe puedan crear un proyecto
+        if not self.owner.profile.user_type == 'jefe':
+            raise ValueError("Solo los jefes pueden crear proyectos.")
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title
+    
+
+
+class Tarea(models.Model):
+    titulo = models.CharField(max_length=200)
+    descripcion = models.TextField()
+    carga = models.IntegerField()  # Peso de la tarea de 1 a 10
+    proyecto = models.ForeignKey(Proyecto, related_name='tareas', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.titulo
+
+    def clean(self):
+        # Validar que la carga esté entre 1 y 10
+        if self.carga < 1 or self.carga > 10:
+            raise ValidationError('La carga debe estar entre 1 y 10.')
+
+# Tabla intermedia entre Tarea y Usuario para asignar tareas a los usuarios
+    
+
+
+
