@@ -19,33 +19,29 @@ def is_jefe(user):
     return user.profile.user_type == 'jefe'
 
 @user_passes_test(is_jefe)
+@api_view(['POST'])
 def assign_task(request):
-    if request.method == 'POST':
-        # Aquí iría la lógica para crear y asignar una tarea
-        # Ejemplo básico de cómo manejar la asignación de tareas:
-        task_title = request.POST.get('title')
-        task_description = request.POST.get('description')
-        task_assigned_to = request.POST.get('assigned_to')
-        task_due_date = request.POST.get('due_date')
-        task_priority = request.POST.get('priority')
-
-        # Crear la nueva tarea
-        Tarea.objects.create(
-            title=task_title,
-            description=task_description,
-            assigned_to_id=task_assigned_to,
-            assigned_by=request.user,
-            due_date=task_due_date,
-            priority=task_priority,
-        )
-
-        return redirect('some_view_name')  # Redirigir a alguna vista después de asignar la tarea
-
-    # En caso de GET, renderiza un formulario para asignar tareas
-    return render(request, 'assign_task.html')
-
-
-# metodo para renderizar algun template que se tenga 
+    # Verificar si el usuario es jefe
+    if not is_jefe(request.user):
+        return Response({'detail': 'No tienes permisos para asignar tareas.'}, status=status.HTTP_403_FORBIDDEN)
+    
+    # Obtener datos del proyecto (si están en el request)
+    proyecto_id = request.data.get('proyecto_id')
+    
+    try:
+        proyecto = Proyecto.objects.get(id=proyecto_id)
+    except Proyecto.DoesNotExist:
+        return Response({'detail': 'Proyecto no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Crear la tarea
+    serializer = TareaSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save(proyecto=proyecto)  # Asignar explícitamente el proyecto
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    # Mostrar errores en consola si hay problemas
+    print(serializer.errors)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 def test_url(request):
     if request.method =='GET':
@@ -97,11 +93,13 @@ class LoginView(APIView):
 #la función login
 def get_user_data(request):
     user = request.user
-    user_data = {
-        'username': user.username,
-        'email': user.email,
-        'user_type': getattr(user.profile, 'user_type', None),
-        'name': getattr(user.profile, 'name', None),
-    }
+
+    # Obtener proyectos donde el usuario es miembro
+    proyectos = Proyecto.objects.filter(members=user)
+
+    # Serializar el usuario y sus proyectos
+    user_data = UserSerializer(user).data
+    user_data['proyectos'] = ProyectoSerializer(proyectos, many=True).data  # Agregar proyectos al JSON
+
     return Response(user_data)
 
