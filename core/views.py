@@ -103,3 +103,24 @@ def get_user_data(request):
 
     return Response(user_data)
 
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def Crear_Proyectos(request):
+    print(request.data)  # Agrega esto para ver los datos que llegan
+    data = request.data.copy()
+    data['owner'] = request.user.id
+    
+    if not data.get('members'):
+        data['members'] = [request.user.id]  # Asegúrate de que el owner sea miembro también
+
+    serializer = ProyectoSerializer(data=data)
+    
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+

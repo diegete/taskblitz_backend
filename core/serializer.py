@@ -12,7 +12,12 @@ class ProfileSerializer(serializers.ModelSerializer):
 class ProyectoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Proyecto
-        fields = ['id', 'title']  
+        fields = ['title', 'owner', 'members']
+
+    def validate_members(self, members):
+        if not isinstance(members, list):
+            raise serializers.ValidationError("Los miembros deben ser una lista de IDs de usuarios.")
+        return members
 
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer()
