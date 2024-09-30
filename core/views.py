@@ -18,30 +18,18 @@ from rest_framework.permissions import IsAuthenticated
 def is_jefe(user):
     return user.profile.user_type == 'jefe'
 
-@user_passes_test(is_jefe)
 @api_view(['POST'])
-def assign_task(request):
-    # Verificar si el usuario es jefe
-    if not is_jefe(request.user):
-        return Response({'detail': 'No tienes permisos para asignar tareas.'}, status=status.HTTP_403_FORBIDDEN)
-    
-    # Obtener datos del proyecto (si están en el request)
-    proyecto_id = request.data.get('proyecto_id')
-    
-    try:
-        proyecto = Proyecto.objects.get(id=proyecto_id)
-    except Proyecto.DoesNotExist:
-        return Response({'detail': 'Proyecto no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
-    
-    # Crear la tarea
+def create_task(request):
+    print(request.data)  # Revisa los datos recibidos
     serializer = TareaSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save(proyecto=proyecto)  # Asignar explícitamente el proyecto
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
-    # Mostrar errores en consola si hay problemas
-    print(serializer.errors)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response(serializer.data, status=201)
+    print(serializer.errors)  # Agregar esta línea
+    return Response(serializer.errors, status=400)
+
+
+
 
 def test_url(request):
     if request.method =='GET':

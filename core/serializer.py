@@ -12,7 +12,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 class ProyectoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Proyecto
-        fields = ['title', 'owner', 'members']
+        fields = ['id','title', 'owner', 'members']
 
     def validate_members(self, members):
         if not isinstance(members, list):
@@ -36,10 +36,9 @@ class UserSerializer(serializers.ModelSerializer):
 class TareaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tarea
-        fields = ['id', 'titulo', 'descripcion', 'carga', 'proyecto']
+        fields = ['titulo', 'descripcion', 'carga', 'proyecto']
 
     def validate_carga(self, value):
-        
         if value < 1 or value > 10:
             raise serializers.ValidationError('La carga debe estar entre 1 y 10.')
         return value
