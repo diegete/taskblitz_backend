@@ -8,6 +8,7 @@ router = routers.DefaultRouter()
 
 urlpatterns = [
     path('create-task/', create_task, name='create-task'), #url tareas 
+    path('get-tasks/', get_user_tasks, name='get-tasks'), #url tareas
     path('api/users/', create_user, name='create_user'), #url usuarios
     path('login/' , LoginView.as_view(), name='login'), # cuando se use una clase de debe especificar con .as_view para usar su url
     path('api/user-data/',get_user_data, name='get_data'),  # url usuarios data

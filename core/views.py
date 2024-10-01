@@ -28,6 +28,19 @@ def create_task(request):
     print(serializer.errors)  # Agregar esta línea
     return Response(serializer.errors, status=400)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_tasks(request):
+    user = request.user
+
+    # Obtener tareas en los proyectos donde el usuario es miembro
+    proyectos = Proyecto.objects.filter(members=user)
+    tareas = Tarea.objects.filter(proyecto__in=proyectos)  # Filtrar tareas que pertenecen a esos proyectos
+
+    # Serializar las tareas
+    tareas_serializadas = TareaSerializer(tareas, many=True).data
+
+    return Response({'tareas': tareas_serializadas})
 
 
 
