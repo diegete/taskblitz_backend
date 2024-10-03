@@ -48,5 +48,13 @@ class Tarea(models.Model):
 # Tabla intermedia entre Tarea y Usuario para asignar tareas a los usuarios
     
 
+class AsignacionTarea(models.Model):
+    tarea = models.ForeignKey(Tarea, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    asignado_por = models.ForeignKey(User, related_name='asignaciones_hechas', on_delete=models.SET_NULL, null=True)
+    fecha_asignacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Tarea: {self.tarea.titulo}, Asignada a: {self.usuario.username}"
 
 

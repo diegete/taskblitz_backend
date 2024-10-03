@@ -17,7 +17,7 @@ from rest_framework.permissions import IsAuthenticated
 ###
 def is_jefe(user):
     return user.profile.user_type == 'jefe'
-
+# vistar tareas
 @api_view(['POST'])
 def create_task(request):
     print(request.data)  # Revisa los datos recibidos
@@ -43,7 +43,7 @@ def get_user_tasks(request):
     return Response({'tareas': tareas_serializadas})
 
 
-
+# tests 
 def test_url(request):
     if request.method =='GET':
         return render(request,'prueba.html')
@@ -52,7 +52,8 @@ def test_2(request):
     if request.method =='GET':
         return redirect('http://127.0.0.1:8000/test')
     
-@api_view(['POST']) # especificación de tipo de petición
+#vistar crear ususario
+@api_view(['POST']) 
 def create_user(request):
     serializer = UserSerializer(data=request.data) # transformamos el objeto a json con el serializer
     if serializer.is_valid(): # validamos que es un modelo valido 
@@ -61,8 +62,7 @@ def create_user(request):
     print(serializer.errors)# mostramos el error en caso de existir 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) # retornamos el error en caso de ocurrir
 
-
-# genreamos la clase de vista login
+# vista login
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
@@ -89,6 +89,7 @@ class LoginView(APIView):
             return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
         
 ## api_view permite declarar que tipo de petición se realizara
+# vista traer datos del usuario
 @api_view(['GET'])
 @permission_classes([IsAuthenticated]) # permission_clases isAuthenticated verifica que exita el token de auth otorgado en 
 #la función login
@@ -104,7 +105,7 @@ def get_user_data(request):
 
     return Response(user_data)
 
-
+# vista crear proyectos
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def Crear_Proyectos(request):
@@ -124,4 +125,39 @@ def Crear_Proyectos(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# vista asignar tareas 
 
+class AsignarTareaView(APIView):
+    def post(self, request):
+        tarea_id = request.data.get('tarea')
+        miembro_id = request.data.get('miembro')  # Cambiar a 'miembro'
+        asignado_por = request.user  # Usuario autenticado que realiza la asignación
+
+        try:
+            tarea = Tarea.objects.get(id=tarea_id)
+            usuario = User.objects.get(id=miembro_id)  # También cambiar aquí
+
+            # Crear la asignación
+            asignacion = AsignacionTarea.objects.create(
+                tarea=tarea,
+                usuario=usuario,
+                asignado_por=asignado_por
+            )
+            
+            serializer = AsignacionTareaSerializer(asignacion)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        except Tarea.DoesNotExist:
+            return Response({"error": "Tarea no encontrada"}, status=status.HTTP_404_NOT_FOUND)
+        except User.DoesNotExist:
+            return Response({"error": "Miembro no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        
+@api_view(['POST'])
+def get_members_details(request):
+    ids = request.data.get('ids', [])
+    members = User.objects.filter(id__in=ids)
+    serializer = UserSerializer(members, many=True)
+    return Response(serializer.data)
