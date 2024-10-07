@@ -10,6 +10,7 @@ urlpatterns = [
     path('create-task/', create_task, name='create-task'), #url tareas 
     path('get-tasks/', get_user_tasks, name='get-tasks'), #url tareas
     path('asignar-tarea/', AsignarTareaView.as_view(), name='asignar-tarea'),
+    path('get-tasks-by-usuario/',get_user_tasks_by_project , name='get-tasks'),
     path('get-members-details/',get_members_details , name='get-tasks'),
     path('api/users/', create_user, name='create_user'), #url usuarios
     path('login/' , LoginView.as_view(), name='login'), # cuando se use una clase de debe especificar con .as_view para usar su url

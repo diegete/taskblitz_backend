@@ -105,6 +105,20 @@ def get_user_data(request):
 
     return Response(user_data)
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_tasks_by_project(request):
+    project_id = request.GET.get('project_id')  # Obtener el ID del proyecto desde la URL
+    user = request.user
+
+    # Filtrar las tareas del usuario para el proyecto seleccionado
+    asignaciones = AsignacionTarea.objects.filter(usuario=user, tarea__proyecto_id=project_id)
+    
+    # Serializar los datos
+    serializer = AsignacionTareaSerializer(asignaciones, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 # vista crear proyectos
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

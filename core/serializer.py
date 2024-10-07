@@ -52,10 +52,11 @@ class TareaSerializer(serializers.ModelSerializer):
 
 
 class AsignacionTareaSerializer(serializers.ModelSerializer):
+    tarea = TareaSerializer()  # Aquí usamos el nested serializer para obtener los detalles completos de la tarea
+    
     class Meta:
         model = AsignacionTarea
         fields = ['tarea', 'usuario', 'asignado_por', 'fecha_asignacion']
-
     def create(self, validated_data):
         # Aquí puedes agregar validaciones adicionales si es necesario.
         return AsignacionTarea.objects.create(**validated_data)
