@@ -144,12 +144,17 @@ def Crear_Proyectos(request):
 class AsignarTareaView(APIView):
     def post(self, request):
         tarea_id = request.data.get('tarea')
-        miembro_id = request.data.get('miembro')  # Cambiar a 'miembro'
+        miembro_id = request.data.get('miembro')  # Cambiado a 'miembro'
         asignado_por = request.user  # Usuario autenticado que realiza la asignación
 
         try:
             tarea = Tarea.objects.get(id=tarea_id)
-            usuario = User.objects.get(id=miembro_id)  # También cambiar aquí
+            usuario = User.objects.get(id=miembro_id)  # Cambiado aquí
+
+            # Verificar si la tarea ya está asignada
+            if tarea.asignada:
+                return Response({"error": "La tarea ya ha sido asignada y no se puede volver a asignar."}, 
+                                status=status.HTTP_400_BAD_REQUEST)
 
             # Crear la asignación
             asignacion = AsignacionTarea.objects.create(
@@ -157,7 +162,11 @@ class AsignarTareaView(APIView):
                 usuario=usuario,
                 asignado_por=asignado_por
             )
-            
+
+            # Marcar la tarea como asignada
+            tarea.asignada = True
+            tarea.save()  # Guardar el cambio en la base de datos
+
             serializer = AsignacionTareaSerializer(asignacion)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -167,6 +176,7 @@ class AsignarTareaView(APIView):
             return Response({"error": "Miembro no encontrado"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
         
 @api_view(['POST'])
