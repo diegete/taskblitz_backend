@@ -3,6 +3,8 @@ from django.shortcuts import render
 from rest_framework.response import Response
 #tambien uso en auth
 from rest_framework.decorators import api_view,permission_classes
+# permiso
+from django.views.decorators.csrf import csrf_exempt
 #
 from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import render, redirect
@@ -185,3 +187,79 @@ def get_members_details(request):
     members = User.objects.filter(id__in=ids)
     serializer = UserSerializer(members, many=True)
     return Response(serializer.data)
+
+# invitaciones a proyecto 
+class AvailableEmployeesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, project_id):
+        try:
+            project = Proyecto.objects.get(id=project_id)
+        except Proyecto.DoesNotExist:
+            return Response({'error': 'Proyecto no encontrado'}, status=404)
+
+        # Filtrar empleados que aún no han sido invitados ni están en el proyecto
+        invited_users = Invitation.objects.filter(project=project).values_list('invited_user_id', flat=True)
+        
+        # Filtrar empleados en el modelo Profile donde el user_type sea "empleado" y que no hayan sido invitados
+        available_employees = Profile.objects.filter(
+            user_type='empleado'
+        ).exclude(user_id__in=invited_users)
+
+        # Devolver la lista de empleados disponibles con su id y username
+        return Response([{'id': employee.user.id, 'username': employee.user.username} for employee in available_employees])
+    
+
+class SendInvitationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        project_id = request.data.get('proyecto')
+        invited_user_id = request.data.get('invited_user')
+        print("Proyecto:", project_id)
+        print("Invitado:", invited_user_id)
+
+
+        # Verifica si ambos campos están presentes
+        if not project_id or not invited_user_id:
+            return Response({'error': 'Proyecto o usuario no proporcionados'}, status=400)
+        
+            
+        try:
+            # Verifica si existen los objetos en la base de datos
+            project = Proyecto.objects.get(id=project_id)
+            invited_user = User.objects.get(id=invited_user_id)
+        except Proyecto.DoesNotExist:
+            return Response({'error': 'El proyecto no existe'}, status=400)
+        except User.DoesNotExist:
+            return Response({'error': 'El usuario no existe'}, status=400)
+
+        # Crea la invitación
+        invitation = Invitation.objects.create(project=project, invited_user=invited_user)
+        return Response(InvitationSerializer(invitation).data, status=201)
+
+
+
+class ManageInvitationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, invitation_id):
+        action = request.data.get('action')  # "accept" o "reject"
+        
+        try:
+            invitation = Invitation.objects.get(id=invitation_id)
+        except Invitation.DoesNotExist:
+            return Response({'error': 'Invitación no encontrada'}, status=404)
+        
+        if action == 'accept':
+            invitation.status = 'accepted'
+        elif action == 'reject':
+            invitation.status = 'rejected'
+        else:
+            return Response({'error': 'Acción no válida'}, status=400)
+        
+        invitation.save()
+        return Response(InvitationSerializer(invitation).data)
+
+
+

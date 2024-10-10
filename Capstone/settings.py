@@ -30,7 +30,14 @@ ALLOWED_HOSTS = []
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:4200",
 ]
-CORS_ALLOW_ALL_ORIGINS = True
+#probar otras cosas no work
+CSRF_TRUSTED_ORIGINS =[
+    'http://localhost:4200'
+]
+CORS_ALLOW_ALL_ORIGINS = False
+# credenciales
+CORS_ALLOW_CREDENTIALS = True
+
 
 CORS_ALLOW_METHODS = [
     "GET",
@@ -42,8 +49,15 @@ CORS_ALLOW_METHODS = [
 ]
 
 CORS_ALLOW_HEADERS = [
-    "content-type",
-    "authorization",
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
 
 

@@ -59,3 +59,17 @@ class AsignacionTarea(models.Model):
         return f"Tarea: {self.tarea.titulo}, Asignada a: {self.usuario.username}"
 
 
+class Invitation(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pendiente'),
+        ('accepted', 'Aceptada'),
+        ('rejected', 'Rechazada'),
+    ]
+    
+    project = models.ForeignKey(Proyecto, on_delete=models.CASCADE)
+    invited_user = models.ForeignKey(User, on_delete=models.CASCADE)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Invitación a {self.invited_user.username} para unirse a {self.project.title}"

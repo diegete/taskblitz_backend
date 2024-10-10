@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Profile, Tarea,Proyecto,AsignacionTarea
+from .models import Profile, Tarea,Proyecto,AsignacionTarea,Invitation
 
 
 
@@ -60,3 +60,9 @@ class AsignacionTareaSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # Aquí puedes agregar validaciones adicionales si es necesario.
         return AsignacionTarea.objects.create(**validated_data)
+
+
+class InvitationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Invitation
+        fields = ['id', 'project', 'invited_user', 'status', 'created_at']
