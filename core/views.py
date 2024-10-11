@@ -253,13 +253,32 @@ class ManageInvitationView(APIView):
         
         if action == 'accept':
             invitation.status = 'accepted'
+            # Agregar al usuario al proyecto
+            project = invitation.project  # Asumimos que hay un campo 'project' en Invitation
+            user = invitation.invited_user  # Asumimos que hay un campo 'user' en Invitation
+
+            # Relacionar el usuario con el proyecto
+            project.members.add(user)  
+            project.save()
+
         elif action == 'reject':
             invitation.status = 'rejected'
+        
         else:
             return Response({'error': 'Acción no válida'}, status=400)
-        
+
         invitation.save()
         return Response(InvitationSerializer(invitation).data)
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_pending_invitations(request):
+    user = request.user  # Obtenemos el usuario autenticado
+    pending_invitations = Invitation.objects.filter(invited_user=user, status='pending')  # Invitaciones pendientes
+
+    
+    # Serializamos las invitaciones para convertirlas en un formato JSON
+    serializer = InvitationSerializer(pending_invitations, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 

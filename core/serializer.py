@@ -63,6 +63,8 @@ class AsignacionTareaSerializer(serializers.ModelSerializer):
 
 
 class InvitationSerializer(serializers.ModelSerializer):
+    project = ProyectoSerializer()
     class Meta:
         model = Invitation
         fields = ['id', 'project', 'invited_user', 'status', 'created_at']
+        
