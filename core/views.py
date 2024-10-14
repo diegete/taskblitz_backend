@@ -11,6 +11,7 @@ from django.shortcuts import render, redirect
 from .models import *
 from .serializer import * 
 #dependencias para login
+from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -282,3 +283,23 @@ def get_pending_invitations(request):
     serializer = InvitationSerializer(pending_invitations, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+class ProyectoViewSet(viewsets.ModelViewSet):
+    queryset = Proyecto.objects.all().order_by('-prioridad', '-created_at')
+    serializer_class = ProyectoSerializer
+    permission_classes = [IsAuthenticated]
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def actualizar_prioridad(request, proyecto_id):
+    try:
+        proyecto = Proyecto.objects.get(id=proyecto_id)
+        nueva_prioridad = request.data.get('prioridad')
+        if nueva_prioridad not in [1, 3, 5]:
+            return Response({'error': 'Prioridad inválida.'}, status=400)
+        proyecto.prioridad = nueva_prioridad
+        proyecto.save()
+        return Response({'mensaje': 'Prioridad actualizada correctamente.'})
+    except Proyecto.DoesNotExist:
+        return Response({'error': 'Proyecto no encontrado.'}, status=404)

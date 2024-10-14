@@ -19,7 +19,7 @@ class Proyecto(models.Model):
     owner = models.ForeignKey(User, related_name='owned_projects', on_delete=models.CASCADE)
     members = models.ManyToManyField(User, related_name='projects')
     created_at = models.DateTimeField(auto_now_add=True)
-
+    prioridad = models.IntegerField(default=1, choices=[(1, 'Baja'), (3, 'Media'), (5, 'Alta')], null=True)
     def save(self, *args, **kwargs):
         # Asegurarse de que solo los usuarios de tipo jefe puedan crear un proyecto
         if not self.owner.profile.user_type == 'jefe':

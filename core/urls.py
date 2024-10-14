@@ -22,6 +22,7 @@ urlpatterns = [
     path('', test_url, name='test'), # url acceder a admin
     path('test2/', test_2, name='test2'), #  url prueba
     path('crear-proyectos/', Crear_Proyectos, name='crear-proyectos'),
+    path('proyecto/<int:proyecto_id>/prioridad/', actualizar_prioridad, name='actualizar_prioridad'),
     
     
 ]

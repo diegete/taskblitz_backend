@@ -13,7 +13,7 @@ class ProyectoSerializer(serializers.ModelSerializer):
     members = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True)
     class Meta:
         model = Proyecto
-        fields = ['id','title', 'owner', 'members']
+        fields = ['id','title', 'owner', 'members','created_at','prioridad']
 
     def validate_members(self, members):
         if not isinstance(members, list):
