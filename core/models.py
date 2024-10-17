@@ -37,6 +37,7 @@ class Tarea(models.Model):
     carga = models.IntegerField()  # Peso de la tarea de 1 a 10
     proyecto = models.ForeignKey(Proyecto, related_name='tareas', on_delete=models.CASCADE)
     asignada = models.BooleanField(null=True)
+    fechaInicio = models.DateField(null=True)
     fechamax = models.DateField(null=True)
 
     def __str__(self):
