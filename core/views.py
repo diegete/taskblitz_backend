@@ -1,5 +1,5 @@
 from rest_framework import status
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from rest_framework.response import Response
 #tambien uso en auth
 from rest_framework.decorators import api_view,permission_classes
@@ -31,6 +31,28 @@ def create_task(request):
     print(serializer.errors)  # Agregar esta línea
     return Response(serializer.errors, status=400)
 
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_task(request, id):
+    try:
+        # Obtener la tarea o retornar 404 si no existe
+        tarea = get_object_or_404(Tarea, id=id)
+
+        # Serializar la tarea con los nuevos datos
+        serializer = TareaSerializer(tarea, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=200)  # Código 200 para "OK"
+        
+        return Response(serializer.errors, status=400)  # Código 400 para errores de validación
+
+    except ValidationError as e:
+        return Response({'error': str(e)}, status=400)  # Manejo explícito de errores de validación
+
+    except Exception as e:
+        return Response({'error': f'Ocurrió un error inesperado: {str(e)}'}, status=500)  
+    
+    
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_tasks(request):
@@ -205,7 +227,7 @@ class AvailableEmployeesView(APIView):
         # Filtrar empleados en el modelo Profile donde el user_type sea "empleado" y que no hayan sido invitados
         available_employees = Profile.objects.filter(
             user_type='empleado'
-        ).exclude(user_id__in=invited_users)
+        ).exclude(user_id__in=invited_users) # validador para no enviar varias invitaciones a 1 mismo empleado
 
         # Devolver la lista de empleados disponibles con su id y username
         return Response([{'id': employee.user.id, 'username': employee.user.username} for employee in available_employees])

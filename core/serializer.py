@@ -43,7 +43,7 @@ class UserSerializer(serializers.ModelSerializer):
 class TareaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tarea
-        fields = ['id','titulo', 'descripcion', 'carga', 'proyecto','asignada','fechamax']
+        fields = ['id','titulo', 'descripcion', 'carga', 'proyecto','asignada','fechaInicio','fechamax']
 
     def validate_carga(self, value):
         if value < 1 or value > 10:
