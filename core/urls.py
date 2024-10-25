@@ -13,6 +13,7 @@ urlpatterns = [
     path('asignar-tarea/', AsignarTareaView.as_view(), name='asignar-tarea'), # url asignar las tareas
     path('available-employees/<int:project_id>/', AvailableEmployeesView.as_view(), name='available_employees'), # url empleados Dis
     path('pending-invitations/',get_pending_invitations, name='pending-invitations' ), # url obtener invitaciones pendientes
+    path('tareas/<int:tarea_id>/avance/', update_task_progress, name='update_task_progress'), # url avance de tarea 
     path('sent-invitation/', SendInvitationView.as_view(), name='sent-invitation'), # url enviar invitaciones
     path('manage-invitation/<int:invitation_id>/', ManageInvitationView.as_view(), name='manage-invitation'),# url administra invita
     path('get-tasks-by-usuario/',get_user_tasks_by_project , name='get-tasks-by-usuario'),# url obtener tareas por usuario

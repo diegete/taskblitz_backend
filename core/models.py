@@ -32,6 +32,11 @@ class Proyecto(models.Model):
 
 
 class Tarea(models.Model):
+    AVANCE_TYPE =(
+        ('iniciada', 'Iniciada'),
+        ('en curso', 'En Curso'),
+        ('finalizada', 'Finalizada'),
+    )
     titulo = models.CharField(max_length=200)
     descripcion = models.TextField()
     carga = models.IntegerField()  # Peso de la tarea de 1 a 10
@@ -39,6 +44,9 @@ class Tarea(models.Model):
     asignada = models.BooleanField(null=True)
     fechaInicio = models.DateField(null=True)
     fechamax = models.DateField(null=True)
+    avance = models.CharField(max_length=15, choices=AVANCE_TYPE, null= True)
+    estado = models.BooleanField( null=True)
+
 
     def __str__(self):
         return self.titulo

@@ -325,3 +325,21 @@ def actualizar_prioridad(request, proyecto_id):
         return Response({'mensaje': 'Prioridad actualizada correctamente.'})
     except Proyecto.DoesNotExist:
         return Response({'error': 'Proyecto no encontrado.'}, status=404)
+    
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def update_task_progress(request, tarea_id):
+    tarea = get_object_or_404(Tarea, id=tarea_id)
+
+    # Solo permitir actualizar el campo "avance"
+    avance = request.data.get('avance')
+    if avance not in ['iniciada', 'en curso', 'finalizada']:
+        return Response({'error': 'Avance no válido'}, status=400)
+
+    tarea.avance = avance
+    tarea.save()
+
+    serializer = TareaSerializer(tarea)
+    return Response(serializer.data, status=200)
+
