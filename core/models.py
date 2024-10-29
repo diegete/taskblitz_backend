@@ -9,10 +9,13 @@ class Profile(models.Model):
     )
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=False)
     user_type = models.CharField(max_length=10, choices=USER_TYPES)
-    # disponible = models.BooleanField(null= True)
+    cargaTrabajo = models.IntegerField(default=0, null=True)
 
     def __str__(self):
         return self.user.username
+    def clean(self): 
+        if self.cargaTrabajo > 10:
+            return ValidationError('La carga máxima por trabajador es 10')
     
 class Proyecto(models.Model):
     title = models.CharField(max_length=50)
@@ -45,7 +48,7 @@ class Tarea(models.Model):
     fechaInicio = models.DateField(null=True)
     fechamax = models.DateField(null=True)
     avance = models.CharField(max_length=15, choices=AVANCE_TYPE, null= True)
-    estado = models.BooleanField( null=True)
+    estado = models.BooleanField(default=False, null=True)
 
 
     def __str__(self):

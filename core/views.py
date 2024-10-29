@@ -169,17 +169,28 @@ def Crear_Proyectos(request):
 class AsignarTareaView(APIView):
     def post(self, request):
         tarea_id = request.data.get('tarea')
-        miembro_id = request.data.get('miembro')  # Cambiado a 'miembro'
+        miembro_id = request.data.get('miembro')  # ID del perfil del miembro
         asignado_por = request.user  # Usuario autenticado que realiza la asignación
 
         try:
             tarea = Tarea.objects.get(id=tarea_id)
-            usuario = User.objects.get(id=miembro_id)  # Cambiado aquí
+            usuario = User.objects.get(id=miembro_id)
+            perfil = Profile.objects.get(user=usuario)  # Obtener el perfil del usuario
 
             # Verificar si la tarea ya está asignada
             if tarea.asignada:
-                return Response({"error": "La tarea ya ha sido asignada y no se puede volver a asignar."}, 
-                                status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": "La tarea ya ha sido asignada y no se puede volver a asignar."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Validar si la nueva carga excede el límite
+            nueva_carga = perfil.cargaTrabajo + tarea.carga
+            if nueva_carga > 10:
+                return Response(
+                    {"error": "La carga máxima por trabajador es 10. No se puede asignar esta tarea."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
             # Crear la asignación
             asignacion = AsignacionTarea.objects.create(
@@ -188,10 +199,14 @@ class AsignarTareaView(APIView):
                 asignado_por=asignado_por
             )
 
-            # Marcar la tarea como asignada
+            # Marcar la tarea como asignada y actualizar la carga del perfil
             tarea.asignada = True
-            tarea.save()  # Guardar el cambio en la base de datos
+            tarea.save()
 
+            perfil.cargaTrabajo = nueva_carga  # Actualizar la carga en el perfil
+            perfil.save()  # Guardar los cambios en la base de datos
+
+            # Serializar y devolver la asignación creada
             serializer = AsignacionTareaSerializer(asignacion)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -201,6 +216,7 @@ class AsignarTareaView(APIView):
             return Response({"error": "Miembro no encontrado"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
         
@@ -332,14 +348,32 @@ def actualizar_prioridad(request, proyecto_id):
 def update_task_progress(request, tarea_id):
     tarea = get_object_or_404(Tarea, id=tarea_id)
 
-    # Solo permitir actualizar el campo "avance"
+    # Validar el nuevo estado de avance
     avance = request.data.get('avance')
     if avance not in ['iniciada', 'en curso', 'finalizada']:
         return Response({'error': 'Avance no válido'}, status=400)
 
+    # Si el avance es "finalizada", descontar la carga al usuario
+    if avance == 'finalizada' and not tarea.estado:  # Solo si aún no estaba finalizada
+        try:
+            # Obtener la asignación de la tarea para acceder al usuario asignado
+            asignacion = AsignacionTarea.objects.get(tarea=tarea)
+            perfil = Profile.objects.get(user=asignacion.usuario)
+
+            # Descontar la carga de trabajo
+            perfil.cargaTrabajo = max(perfil.cargaTrabajo - tarea.carga, 0)  # Evitar carga negativa
+            perfil.save()  # Guardar cambios en el perfil
+
+            # Cambiar el estado de la tarea a completada
+            tarea.estado = True
+
+        except AsignacionTarea.DoesNotExist:
+            return Response({'error': 'Asignación no encontrada para esta tarea.'}, status=404)
+
+    # Actualizar el avance de la tarea y guardar
     tarea.avance = avance
     tarea.save()
 
+    # Devolver la tarea actualizada como respuesta
     serializer = TareaSerializer(tarea)
     return Response(serializer.data, status=200)
-
