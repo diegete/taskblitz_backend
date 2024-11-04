@@ -18,6 +18,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 ###
+
+
+
 def is_jefe(user):
     return user.profile.user_type == 'jefe'
 # vistar tareas
@@ -377,3 +380,23 @@ def update_task_progress(request, tarea_id):
     # Devolver la tarea actualizada como respuesta
     serializer = TareaSerializer(tarea)
     return Response(serializer.data, status=200)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_messages(request, proyecto_id):
+    messages = Message.objects.filter(proyecto_id=proyecto_id).order_by('timestamp')
+    serializer = MessageSerializer(messages, many=True)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def send_message(request, proyecto_id):
+    user = request.user
+    content = request.data.get('content')
+    if not content:
+        return Response({'error': 'El contenido no puede estar vacío'}, status=status.HTTP_400_BAD_REQUEST)
+
+    proyecto = Proyecto.objects.get(id=proyecto_id)
+    message = Message.objects.create(proyecto=proyecto, user=user, content=content)
+    serializer = MessageSerializer(message)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)

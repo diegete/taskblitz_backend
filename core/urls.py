@@ -25,6 +25,8 @@ urlpatterns = [
     path('test2/', test_2, name='test2'), #  url prueba
     path('crear-proyectos/', Crear_Proyectos, name='crear-proyectos'),# url crear proyectos
     path('proyecto/<int:proyecto_id>/prioridad/', actualizar_prioridad, name='actualizar_prioridad'),# url prioridad proyectos
+    path('proyectos/<int:proyecto_id>/messages/', get_messages, name='get_messages'), # adminstración mensajes
+    path('proyectos/<int:proyecto_id>/messages/send/', send_message, name='send_message'),
     
     
 ]

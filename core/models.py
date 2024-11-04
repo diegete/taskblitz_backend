@@ -86,3 +86,12 @@ class Invitation(models.Model):
 
     def __str__(self):
         return f"Invitación a {self.invited_user.username} para unirse a {self.project.title}"
+
+class Message(models.Model):
+    proyecto = models.ForeignKey(Proyecto, on_delete=models.CASCADE, related_name="messages")
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username}: {self.content[:20]}..."

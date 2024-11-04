@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Profile, Tarea,Proyecto,AsignacionTarea,Invitation
+from .models import Profile, Tarea,Proyecto,AsignacionTarea,Invitation,Message
 
 
 
@@ -68,3 +68,9 @@ class InvitationSerializer(serializers.ModelSerializer):
         model = Invitation
         fields = ['id', 'project', 'invited_user', 'status', 'created_at']
         
+class MessageSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()  # Para devolver el nombre de usuario en lugar del ID
+
+    class Meta:
+        model = Message
+        fields = ['id', 'proyecto', 'user', 'content', 'timestamp']
