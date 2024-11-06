@@ -11,7 +11,8 @@ from django.shortcuts import render, redirect
 from .models import *
 from .serializer import * 
 #dependencias para login
-from rest_framework import viewsets
+from rest_framework import viewsets,generics,permissions
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -19,6 +20,18 @@ from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 ###
 
+
+
+class UpdateProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        profile = Profile.objects.get(user=request.user)
+        serializer = ProfileSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 def is_jefe(user):
@@ -400,3 +413,18 @@ def send_message(request, proyecto_id):
     message = Message.objects.create(proyecto=proyecto, user=user, content=content)
     serializer = MessageSerializer(message)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def UpdateUserData(request):
+    user = request.user
+    data = request.data
+    if data.get('name'):
+        user.first_name = data.get('name')
+        if data.get('email'):
+            user.email = data.get('email')
+            user.username = data.get('email')
+            user.save()
+            return Response({'message': 'Datos actualizados correctamente'}, status=status.HTTP_200_OK)
+        return Response({'error': 'No se pudo actualizar los datos'}, status=status.HTTP_400_BAD_REQUEST)

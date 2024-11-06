@@ -7,7 +7,7 @@ from .models import Profile, Tarea,Proyecto,AsignacionTarea,Invitation,Message
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
-        fields = ['user', 'user_type', 'cargaTrabajo']
+        fields = ['user', 'user_type', 'cargaTrabajo','image']
 
 class ProyectoSerializer(serializers.ModelSerializer):
     members = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True)

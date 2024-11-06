@@ -1,6 +1,8 @@
 from django.urls import include,path
 from .views import * 
 from rest_framework import routers
+from django.conf import settings
+from django.conf.urls.static import static
 
 router = routers.DefaultRouter()
 
@@ -9,6 +11,7 @@ router = routers.DefaultRouter()
 urlpatterns = [
     path('create-task/', create_task, name='create-task'), #url crear 
     path('update-tasks/<int:id>/', update_task, name='update-task'), #url actualizar tarea
+    path('profile/update/', UpdateProfileView.as_view(), name='profile-update'), # img actualizar
     path('get-tasks/', get_user_tasks, name='get-tasks'), #url obtener
     path('asignar-tarea/', AsignarTareaView.as_view(), name='asignar-tarea'), # url asignar las tareas
     path('available-employees/<int:project_id>/', AvailableEmployeesView.as_view(), name='available_employees'), # url empleados Dis
@@ -30,3 +33,5 @@ urlpatterns = [
     
     
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

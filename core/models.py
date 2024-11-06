@@ -10,6 +10,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=False)
     user_type = models.CharField(max_length=10, choices=USER_TYPES)
     cargaTrabajo = models.IntegerField(default=0, null=True)
+    image = models.ImageField(upload_to='profile_images/', null=True, blank=True)
 
     def __str__(self):
         return self.user.username
