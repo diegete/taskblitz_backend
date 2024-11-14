@@ -74,3 +74,9 @@ class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = ['id', 'proyecto', 'user', 'content', 'timestamp']
+
+
+class ProjectMetricsSerializer(serializers.Serializer):
+    total_tasks = serializers.IntegerField()
+    completed_tasks = serializers.IntegerField()
+    progress = serializers.DecimalField(max_digits=5, decimal_places=2)

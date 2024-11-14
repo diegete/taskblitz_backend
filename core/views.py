@@ -428,3 +428,14 @@ def UpdateUserData(request):
             user.save()
             return Response({'message': 'Datos actualizados correctamente'}, status=status.HTTP_200_OK)
         return Response({'error': 'No se pudo actualizar los datos'}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class ProjectMetricsView(APIView):
+    def get(self, request, project_id):
+        try:
+            proyecto = Proyecto.objects.get(id=project_id)
+            metrics = proyecto.get_metrics()  # Obtén las métricas desde el método
+ 
+            return Response(metrics, status=status.HTTP_200_OK)
+        except Proyecto.DoesNotExist:
+            return Response({"error": "Proyecto no encontrado"}, status=status.HTTP_404_NOT_FOUND)

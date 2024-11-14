@@ -32,6 +32,20 @@ class Proyecto(models.Model):
 
     def __str__(self):
         return self.title
+    def get_metrics(self):
+        # Obtiene el total de tareas y las tareas finalizadas
+        total_tasks = self.tareas.count()
+        completed_tasks = self.tareas.filter(avance='finalizada').count()
+
+        # Calcula el progreso en porcentaje
+        progress = (completed_tasks / total_tasks) * 100 if total_tasks > 0 else 0
+
+        # Devuelve las métricas como un diccionario
+        return {
+            'total_tasks': total_tasks,
+            'completed_tasks': completed_tasks,
+            'progress': round(progress, 2)  # Limita el progreso a dos decimales
+        }
     
 
 

@@ -1,8 +1,8 @@
-from django.urls import include,path
+from django.urls import path
 from .views import * 
 from rest_framework import routers
-from django.conf import settings
-from django.conf.urls.static import static
+
+
 
 router = routers.DefaultRouter()
 
@@ -30,8 +30,7 @@ urlpatterns = [
     path('proyecto/<int:proyecto_id>/prioridad/', actualizar_prioridad, name='actualizar_prioridad'),# url prioridad proyectos
     path('proyectos/<int:proyecto_id>/messages/', get_messages, name='get_messages'), # adminstración mensajes
     path('proyectos/<int:proyecto_id>/messages/send/', send_message, name='send_message'),
+    path('proyecto/<int:project_id>/metricas', ProjectMetricsView.as_view(), name='project-metrics')
     
     
 ]
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
