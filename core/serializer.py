@@ -3,11 +3,8 @@ from django.contrib.auth.models import User
 from .models import Profile, Tarea,Proyecto,AsignacionTarea,Invitation,Message
 
 
+# fix se muestre el usuario a penas se cree acepte la invita. y que cuando se envia se muestre que llego
 
-class ProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Profile
-        fields = ['user', 'user_type', 'cargaTrabajo','image']
 
 class ProyectoSerializer(serializers.ModelSerializer):
     members = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True)
@@ -26,19 +23,28 @@ class ProyectoSerializer(serializers.ModelSerializer):
         representation['members'] = UserSerializer(instance.members, many=True).data
         return representation
 
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ['user', 'user_type', 'cargaTrabajo', 'image']
+        extra_kwargs = {
+            'user': {'required': False},  
+        }
+
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer()
-    proyectos = ProyectoSerializer(many=True, read_only= True)
+
     class Meta:
         model = User
-        fields = ['id','username', 'email', 'password', 'profile','proyectos']
-        
+        fields = ['id', 'username', 'email', 'password', 'profile']
 
     def create(self, validated_data):
-        profile_data = validated_data.pop('profile')
-        user = User.objects.create_user(**validated_data)
+        profile_data = validated_data.pop('profile')  # Extraemos los datos del perfil
+        user = User.objects.create_user(**validated_data)  # Creamos al usuario
+        # Crear el perfil asociado
         Profile.objects.create(user=user, **profile_data)
         return user
+
         
 class TareaSerializer(serializers.ModelSerializer):
     class Meta:

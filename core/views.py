@@ -94,14 +94,17 @@ def test_2(request):
         return redirect('http://127.0.0.1:8000/test')
     
 #vistar crear ususario
-@api_view(['POST']) 
+# REVISAR CREAR USUARIO ALGO FALLA NO TEMA DE PROYECT VIEW
+@api_view(['POST'])
 def create_user(request):
-    serializer = UserSerializer(data=request.data) # transformamos el objeto a json con el serializer
-    if serializer.is_valid(): # validamos que es un modelo valido 
-        serializer.save() # guardamos el modelo en la bdd
-        return Response(serializer.data, status=status.HTTP_201_CREATED) # respondemos con un 201 creado
-    print(serializer.errors)# mostramos el error en caso de existir 
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) # retornamos el error en caso de ocurrir
+    print("Datos recibidos:", request.data)  # Imprimir los datos que llegan
+    serializer = UserSerializer(data=request.data)
+    if serializer.is_valid():
+        user = serializer.save()
+        print("Usuario creado:", user.username)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    print("Errores del serializador:", serializer.errors)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # vista login
 class LoginView(APIView):

@@ -8,9 +8,10 @@ class Profile(models.Model):
         ('empleado', 'Empleado'),
     )
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=False)
-    user_type = models.CharField(max_length=10, choices=USER_TYPES)
+    user_type = models.CharField(max_length=10, choices=USER_TYPES,null=True)
     cargaTrabajo = models.IntegerField(default=0, null=True)
-    image = models.ImageField(upload_to='profile_images/', null=True, blank=True)
+    image = models.ImageField(upload_to='profile_images/', null=True)
+   
 
     def __str__(self):
         return self.user.username
@@ -29,7 +30,9 @@ class Proyecto(models.Model):
         if not self.owner.profile.user_type == 'jefe':
             raise ValueError("Solo los jefes pueden crear proyectos.")
         super().save(*args, **kwargs)
-
+    def delete(self, *args, **kwargs):
+        self.tareas.all().delete()  # Eliminar todas las tareas asociadas al proyecto
+        super().delete(*args, **kwargs)
     def __str__(self):
         return self.title
     def get_metrics(self):
@@ -46,6 +49,7 @@ class Proyecto(models.Model):
             'completed_tasks': completed_tasks,
             'progress': round(progress, 2)  # Limita el progreso a dos decimales
         }
+
     
 
 

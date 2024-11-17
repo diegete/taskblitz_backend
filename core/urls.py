@@ -1,7 +1,8 @@
+from django.conf import settings
 from django.urls import path
 from .views import * 
 from rest_framework import routers
-
+from django.conf.urls.static import static
 
 
 router = routers.DefaultRouter()
@@ -34,3 +35,5 @@ urlpatterns = [
     
     
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
