@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from .models import Profile, Tarea,Proyecto,AsignacionTarea,Invitation,Message
 
 
-# fix se muestre el usuario a penas se cree acepte la invita. y que cuando se envia se muestre que llego
 
 
 class ProyectoSerializer(serializers.ModelSerializer):
@@ -59,6 +58,7 @@ class TareaSerializer(serializers.ModelSerializer):
 
 class AsignacionTareaSerializer(serializers.ModelSerializer):
     tarea = TareaSerializer()  # Aquí usamos el nested serializer para obtener los detalles completos de la tarea
+    asignado_por = serializers.CharField(source='asignado_por.username', read_only=True) # usarmos esta pequeña asignación para obtener el nombre en ves de la ID
     
     class Meta:
         model = AsignacionTarea

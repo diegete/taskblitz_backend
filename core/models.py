@@ -38,7 +38,9 @@ class Proyecto(models.Model):
     def get_metrics(self):
         # Obtiene el total de tareas y las tareas finalizadas
         total_tasks = self.tareas.count()
+        inprogres_taks = self.tareas.filter(avance='Cursando').count()
         completed_tasks = self.tareas.filter(avance='finalizada').count()
+
 
         # Calcula el progreso en porcentaje
         progress = (completed_tasks / total_tasks) * 100 if total_tasks > 0 else 0
@@ -46,6 +48,7 @@ class Proyecto(models.Model):
         # Devuelve las métricas como un diccionario
         return {
             'total_tasks': total_tasks,
+            'inprogres_taks': inprogres_taks,
             'completed_tasks': completed_tasks,
             'progress': round(progress, 2)  # Limita el progreso a dos decimales
         }
@@ -56,7 +59,7 @@ class Proyecto(models.Model):
 class Tarea(models.Model):
     AVANCE_TYPE =(
         ('iniciada', 'Iniciada'),
-        ('en curso', 'En Curso'),
+        ('cursando', 'Cursando'),
         ('finalizada', 'Finalizada'),
     )
     titulo = models.CharField(max_length=200)

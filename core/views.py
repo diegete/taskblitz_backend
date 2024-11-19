@@ -20,7 +20,7 @@ from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
 ###
 
-
+# cambio de contraseñas, notificación actualización tarea y metricas con reporte.
 
 class UpdateProfileView(APIView):
     permission_classes = [IsAuthenticated]
@@ -369,7 +369,7 @@ def update_task_progress(request, tarea_id):
 
     # Validar el nuevo estado de avance
     avance = request.data.get('avance')
-    if avance not in ['iniciada', 'en curso', 'finalizada']:
+    if avance not in ['iniciada', 'Cursando', 'finalizada']:
         return Response({'error': 'Avance no válido'}, status=400)
 
     # Si el avance es "finalizada", descontar la carga al usuario
