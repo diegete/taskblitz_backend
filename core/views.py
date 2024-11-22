@@ -18,10 +18,45 @@ from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated
+#
+from django.utils.crypto import get_random_string
+from django.core.mail import send_mail
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 ###
 
-# cambio de contraseñas, notificación actualización tarea y metricas con reporte.
+# cambio de contraseñas y notificación actualización tarea.
+@method_decorator(csrf_exempt, name='dispatch')
+class PasswordResetRequestView(APIView):
+    def post(self, request):
+        print("Datos recibidos en el backend:", request.data)
+        email = request.data.get('email')  # Obtén el email del cuerpo de la solicitud
+        print("Email recibido:", email)
+        
+        if not email:
+            return Response({'error': 'El campo email es obligatorio.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        try:
+            user = User.objects.get(email=email)
+            token = get_random_string(50)
+            user.profile.reset_password_token = token
+            user.profile.save()
+
+            reset_link = f"http://localhost:4200/auth/password-reset/{token}"
+            send_mail(
+                'Restablecimiento de Contraseña',
+                f'Usa este enlace para restablecer tu contraseña: {reset_link}',
+                settings.EMAIL_HOST_USER,
+                [email],
+                fail_silently=False,
+            )
+            
+            return Response({'message': 'Correo de restablecimiento enviado.'}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'error': 'Usuario no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+
+    
 class UpdateProfileView(APIView):
     permission_classes = [IsAuthenticated]
 

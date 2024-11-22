@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.urls import path
+from django.urls import path,include
 from .views import * 
 from rest_framework import routers
 from django.conf.urls.static import static
@@ -31,7 +31,10 @@ urlpatterns = [
     path('proyecto/<int:proyecto_id>/prioridad/', actualizar_prioridad, name='actualizar_prioridad'),# url prioridad proyectos
     path('proyectos/<int:proyecto_id>/messages/', get_messages, name='get_messages'), # adminstración mensajes
     path('proyectos/<int:proyecto_id>/messages/send/', send_message, name='send_message'),
-    path('proyecto/<int:project_id>/metricas', ProjectMetricsView.as_view(), name='project-metrics')
+    path('proyecto/<int:project_id>/metricas', ProjectMetricsView.as_view(), name='project-metrics'),
+    path('accounts/', include('allauth.urls')),
+    path('api/password/reset/', PasswordResetRequestView.as_view(), name='custom_password_reset'),
+    
     
     
 ]
