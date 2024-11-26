@@ -6,6 +6,7 @@ from rest_framework.decorators import api_view,permission_classes
 # permiso
 from django.views.decorators.csrf import csrf_exempt
 #
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import render, redirect
 from .models import *
@@ -26,7 +27,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 ###
 
-# cambio de contraseñas y notificación actualización tarea.
+# cambio de contraseñas parte de url correos y time out y notificación asignación de tareas.
+
 @method_decorator(csrf_exempt, name='dispatch')
 class PasswordResetRequestView(APIView):
     def post(self, request):
@@ -56,7 +58,45 @@ class PasswordResetRequestView(APIView):
         except User.DoesNotExist:
             return Response({'error': 'Usuario no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
-    
+@method_decorator(csrf_exempt, name='dispatch')
+class PasswordResetView(APIView):
+    def post(self, request, token):
+        print("Token recibido:", token)
+        print("Datos recibidos:", request.data)
+
+        password = request.data.get('new_password')  # Cambiado a 'new_password'
+        confirm_password = request.data.get('confirm_password')
+
+        if not password or not confirm_password:
+            print("Error: Falta password o confirm_password.")
+            return Response({'error': 'Los campos de contraseña son obligatorios.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if password != confirm_password:
+            print("Error: Las contraseñas no coinciden.")
+            return Response({'error': 'Las contraseñas no coinciden.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user_profile = Profile.objects.get(reset_password_token=token)  # Verifica el token
+            print("Usuario encontrado para el token:", user_profile.user)
+
+            # Actualiza la contraseña
+            user = user_profile.user
+            user.password = make_password(password)
+            user.save()
+
+            # Limpia el token
+            user_profile.reset_password_token = None
+            user_profile.save()
+
+            print("Contraseña actualizada exitosamente.")
+            return Response({'message': 'Contraseña actualizada exitosamente.'}, status=status.HTTP_200_OK)
+        except Profile.DoesNotExist:
+            print("Error: Token inválido o expirado.")
+            return Response({'error': 'Token inválido o expirado.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+
 class UpdateProfileView(APIView):
     permission_classes = [IsAuthenticated]
 

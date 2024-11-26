@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from pydantic import ValidationError
-
+import uuid
 class Profile(models.Model):
     USER_TYPES = (
         ('jefe', 'Jefe'),
@@ -11,13 +11,19 @@ class Profile(models.Model):
     user_type = models.CharField(max_length=10, choices=USER_TYPES,null=True)
     cargaTrabajo = models.IntegerField(default=0, null=True)
     image = models.ImageField(upload_to='profile_images/', null=True)
-   
+    reset_password_token = models.CharField(max_length=255, blank=True, null=True)  # Campo para el token
 
     def __str__(self):
         return self.user.username
     def clean(self): 
         if self.cargaTrabajo > 10:
             return ValidationError('La carga máxima por trabajador es 10')
+    
+def generate_reset_token(user):
+    profile = user.profile  # Asumiendo que `Profile` está relacionado con `User`
+    profile.reset_password_token = uuid.uuid4().hex  # Generar un token único
+    profile.save()
+    return profile.reset_password_token
     
 class Proyecto(models.Model):
     title = models.CharField(max_length=50)

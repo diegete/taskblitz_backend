@@ -34,8 +34,7 @@ urlpatterns = [
     path('proyecto/<int:project_id>/metricas', ProjectMetricsView.as_view(), name='project-metrics'),
     path('accounts/', include('allauth.urls')),
     path('api/password/reset/', PasswordResetRequestView.as_view(), name='custom_password_reset'),
-    
-    
+    path('api/password/reset/<str:token>/', PasswordResetView.as_view(), name='password_reset'),
     
 ]
 if settings.DEBUG:
