@@ -35,6 +35,7 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('api/password/reset/', PasswordResetRequestView.as_view(), name='custom_password_reset'),
     path('api/password/reset/<str:token>/', PasswordResetView.as_view(), name='password_reset'),
+    path('api/notifications/', NotificationView.as_view(), name='notification-task')
     
 ]
 if settings.DEBUG:

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Profile, Tarea,Proyecto,AsignacionTarea,Invitation,Message
+from .models import Notification, Profile, Tarea,Proyecto,AsignacionTarea,Invitation,Message
 
 
 
@@ -86,3 +86,9 @@ class ProjectMetricsSerializer(serializers.Serializer):
     total_tasks = serializers.IntegerField()
     completed_tasks = serializers.IntegerField()
     progress = serializers.DecimalField(max_digits=5, decimal_places=2)
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ['id', 'message', 'created_at', 'read']

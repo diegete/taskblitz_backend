@@ -27,7 +27,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 ###
 
-# cambio de contraseñas parte de url correos y time out y notificación asignación de tareas.
+#  time out.
 
 @method_decorator(csrf_exempt, name='dispatch')
 class PasswordResetRequestView(APIView):
@@ -269,16 +269,14 @@ class AsignarTareaView(APIView):
         try:
             tarea = Tarea.objects.get(id=tarea_id)
             usuario = User.objects.get(id=miembro_id)
-            perfil = Profile.objects.get(user=usuario)  # Obtener el perfil del usuario
+            perfil = Profile.objects.get(user=usuario)
 
-            # Verificar si la tarea ya está asignada
             if tarea.asignada:
                 return Response(
                     {"error": "La tarea ya ha sido asignada y no se puede volver a asignar."},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Validar si la nueva carga excede el límite
             nueva_carga = perfil.cargaTrabajo + tarea.carga
             if nueva_carga > 10:
                 return Response(
@@ -286,31 +284,55 @@ class AsignarTareaView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Crear la asignación
             asignacion = AsignacionTarea.objects.create(
                 tarea=tarea,
                 usuario=usuario,
                 asignado_por=asignado_por
             )
 
-            # Marcar la tarea como asignada y actualizar la carga del perfil
             tarea.asignada = True
             tarea.save()
+            perfil.cargaTrabajo = nueva_carga
+            perfil.save()
 
-            perfil.cargaTrabajo = nueva_carga  # Actualizar la carga en el perfil
-            perfil.save()  # Guardar los cambios en la base de datos
+            # Crear notificación
+            Notification.objects.create(
+                user=usuario,
+                message=f"Se te ha asignado la tarea '{tarea.titulo}'."
+            )
+            
 
-            # Serializar y devolver la asignación creada
             serializer = AsignacionTareaSerializer(asignacion)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+        except Exception as e:
+            print(f"Error al asignar la tarea o crear la notificación: {e}")
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            print(f"Notificación creada para {usuario.username}")
         except Tarea.DoesNotExist:
             return Response({"error": "Tarea no encontrada"}, status=status.HTTP_404_NOT_FOUND)
         except User.DoesNotExist:
             return Response({"error": "Miembro no encontrado"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+class NotificationView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        user = request.user
+        notifications = Notification.objects.filter(user=user, read=False)
+        serializer = NotificationSerializer(notifications, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        notification_id = request.data.get('notification_id')
+        try:
+            notification = Notification.objects.get(id=notification_id, user=request.user)
+            notification.read = True
+            notification.save()
+            return Response({"message": "Notificación marcada como leída."})
+        except Notification.DoesNotExist:
+            return Response({"error": "Notificación no encontrada."}, status=status.HTTP_404_NOT_FOUND)
 
 
         
