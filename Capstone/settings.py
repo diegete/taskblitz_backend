@@ -14,13 +14,19 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+from datetime import timedelta
 import os
 
 # Configuración de archivos de media
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+SIMPLE_JWT = {                                        # ajustes de token
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=20),  # Ajusta según lo que necesites (default: 5 minutos)
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # Tiempo para renovar el token
+    'ROTATE_REFRESH_TOKENS': False,              # Permite renovar automáticamente
+    'BLACKLIST_AFTER_ROTATION': True,            # Invalida el refresh token anterior
+}
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
