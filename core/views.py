@@ -1,3 +1,4 @@
+from datetime import date,datetime
 from rest_framework import status
 from django.shortcuts import get_object_or_404, render
 from rest_framework.response import Response
@@ -25,6 +26,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+
 ###
 
 #  time out.
@@ -320,6 +322,10 @@ class NotificationView(APIView):
 
     def get(self, request):
         user = request.user
+        
+        # Verificar tareas vencidas para este usuario
+        check_overdue_tasks(user)
+
         notifications = Notification.objects.filter(user=user, read=False)
         serializer = NotificationSerializer(notifications, many=True)
         return Response(serializer.data)
@@ -333,6 +339,61 @@ class NotificationView(APIView):
             return Response({"message": "Notificación marcada como leída."})
         except Notification.DoesNotExist:
             return Response({"error": "Notificación no encontrada."}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+def check_overdue_tasks(user=None):
+    print(f"Usuario recibido: {user}")
+    today = date.today()  # Fecha de hoy sin la hora
+    print(f"Fecha actual: {today}")
+
+    # Convertir today's date a datetime para comparar solo las fechas
+    today_at_midnight = datetime.combine(today, datetime.min.time())
+    print(f"Fecha de hoy a medianoche: {today_at_midnight}")
+
+    # Filtrar tareas vencidas asignadas a usuarios (empleados)
+    overdue_tasks = (
+        Tarea.objects.filter(asignaciontarea__usuario=user, fechamax__lt=today_at_midnight, estado=False)
+        if user else
+        Tarea.objects.filter(fechamax__lt=today_at_midnight, estado=False)
+    )
+
+    # Verifica cuántas tareas se están recuperando
+    print(f"Tareas vencidas encontradas: {overdue_tasks.count()}")
+
+    for task in overdue_tasks:
+        print(f"Tarea encontrada: {task.titulo}, Fecha máxima: {task.fechamax}, Estado: {task.estado}")
+
+        # Obtener el usuario al que se le enviará la notificación (empleado asignado)
+        target_user = user if user else task.asignaciontarea_set.first().usuario
+        print(f"Usuario al que se le enviará la notificación: {target_user.username}")
+
+        message = f"La tarea '{task.titulo}' está fuera de plazo."
+
+        # Verificar si ya existe una notificación para evitar duplicados
+        existing_notification = Notification.objects.filter(
+            user=target_user,
+            message=message,
+            type='overdue_task'
+        ).first()
+
+        if existing_notification:
+            print("Ya existe una notificación para esta tarea.")
+        else:
+            print("Creando nueva notificación...")
+
+            # Crear la notificación si no existe ya una igual
+            Notification.objects.get_or_create(
+                user=target_user,
+                message=message,
+                type='overdue_task',
+                defaults={'read': False}
+            )
+
+    print("Proceso de verificación de tareas vencidas completado.")
+
+    
+
 
 
         

@@ -91,4 +91,4 @@ class ProjectMetricsSerializer(serializers.Serializer):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ['id', 'message', 'created_at', 'read']
+        fields = ['id', 'message', 'type', 'read', 'created_at']
