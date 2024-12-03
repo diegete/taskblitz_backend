@@ -42,22 +42,30 @@ class Proyecto(models.Model):
     def __str__(self):
         return self.title
     def get_metrics(self):
-        # Obtiene el total de tareas y las tareas finalizadas
+    # Obtiene el total de tareas y las tareas categorizadas
+        # no_asigandas= self.tareas.filter(avance='').count()
         total_tasks = self.tareas.count()
         inprogres_taks = self.tareas.filter(avance='Cursando').count()
         completed_tasks = self.tareas.filter(avance='finalizada').count()
 
+        # Obtiene los nombres de las tareas en progreso y completadas
+        inprogress_task_names = list(self.tareas.filter(avance='Cursando').values_list('titulo', flat=True))
+        completed_task_names = list(self.tareas.filter(avance='finalizada').values_list('titulo', flat=True))
 
         # Calcula el progreso en porcentaje
         progress = (completed_tasks / total_tasks) * 100 if total_tasks > 0 else 0
 
         # Devuelve las métricas como un diccionario
         return {
+            # 'no_asignada': no_asigandas,
             'total_tasks': total_tasks,
             'inprogres_taks': inprogres_taks,
             'completed_tasks': completed_tasks,
-            'progress': round(progress, 2)  # Limita el progreso a dos decimales
+            'progress': round(progress, 2),  # Limita el progreso a dos decimales
+            'inprogress_task_names': inprogress_task_names,
+            'completed_task_names': completed_task_names,
         }
+
 
     
 
