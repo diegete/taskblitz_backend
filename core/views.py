@@ -175,11 +175,24 @@ def test_2(request):
 @api_view(['POST'])
 def create_user(request):
     print("Datos recibidos:", request.data)  # Imprimir los datos que llegan
+
+    # Verificar si el correo ya existe
+    email = request.data.get('email')
+    if User.objects.filter(email=email).exists():
+        print("El correo ya está registrado:", email)
+        return Response(
+            {"error": "El correo ya está registrado."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Continuar con la creación del usuario
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         user = serializer.save()
         print("Usuario creado:", user.username)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    # Manejo de errores de validación
     print("Errores del serializador:", serializer.errors)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
